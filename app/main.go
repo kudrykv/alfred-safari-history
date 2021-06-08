@@ -12,7 +12,7 @@ import (
 
 type HistoryItem struct {
 	ID    int64
-	Title string
+	Title *string
 	URL   string
 }
 
@@ -43,7 +43,7 @@ func main() {
 		}
 	}
 
-	wf := aw.New()
+	wf := aw.New(aw.MaxResults(0))
 
 	wf.Run(func() {
 		defer wf.SendFeedback()
@@ -83,7 +83,7 @@ func main() {
 		for cursor.Next() {
 			hits = true
 
-			var hi HistoryItem
+			hi := HistoryItem{Title: new(string)}
 
 			if err = cursor.Scan(&hi.ID, &hi.Title, &hi.URL); err != nil {
 				wf.NewWarningItem("Failed to scan an history item", err.Error())
@@ -91,7 +91,14 @@ func main() {
 				return
 			}
 
-			wf.NewItem(hi.Title).UID(strconv.FormatInt(hi.ID, 16)).Arg(hi.URL).Valid(true)
+			var item *aw.Item
+			if hi.Title == nil {
+				item = wf.NewItem("")
+			} else {
+				item = wf.NewItem(*hi.Title)
+			}
+
+			item.UID(strconv.FormatInt(hi.ID, 16)).Arg(hi.URL).Valid(true)
 		}
 
 		if cursor.Err() != nil {
