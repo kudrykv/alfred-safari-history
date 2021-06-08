@@ -78,7 +78,11 @@ func main() {
 
 		defer func() { _ = cursor.Close() }()
 
+		hits := false
+
 		for cursor.Next() {
+			hits = true
+
 			var hi HistoryItem
 
 			if err = cursor.Scan(&hi.ID, &hi.Title, &hi.URL); err != nil {
@@ -92,6 +96,10 @@ func main() {
 
 		if cursor.Err() != nil {
 			wf.NewWarningItem("Cursor error", cursor.Err().Error())
+		}
+
+		if !hits {
+			wf.NewItem("Nothing was found")
 		}
 	})
 }
