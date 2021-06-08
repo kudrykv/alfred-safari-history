@@ -108,18 +108,22 @@
 		<key>3CE4C62B-DC93-4867-B8F6-96642BB66D19</key>
 		<dict>
 			<key>xpos</key>
-			<integer>290</integer>
+			<integer>180</integer>
 			<key>ypos</key>
-			<integer>270</integer>
+			<integer>35</integer>
 		</dict>
 		<key>D9D4F975-77B9-456A-B0D0-73C9C49D914D</key>
 		<dict>
 			<key>xpos</key>
-			<integer>140</integer>
+			<integer>30</integer>
 			<key>ypos</key>
-			<integer>270</integer>
+			<integer>35</integer>
 		</dict>
 	</dict>
+	<key>variablesdontexport</key>
+	<array/>
+	<key>version</key>
+	<string>0.1.0</string>
 	<key>webaddress</key>
 	<string></string>
 </dict>
