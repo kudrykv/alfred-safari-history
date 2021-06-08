@@ -7,7 +7,7 @@ _goarches=(amd64)
 
 for _goos in "${_gooses[@]}"; do
   for _goarch in "${_goarches[@]}"; do
-    GOOS=${_goos} GOARCH=${_goarch} CGO_ENABLED=0 go build -o run ./app
+    GOOS=${_goos} GOARCH=${_goarch} go build -o run ./app
 
     _zipname="Safari_History_${_version}_${_goos}_${_goarch}.alfredworkflow"
     zip -r "${_zipname}" icon.png info.plist preflight.sh run
