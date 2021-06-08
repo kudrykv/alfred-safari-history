@@ -1,8 +1,13 @@
 # Safari History Workflow
 
+Search through Safari history with Alfred.
+
 ## Install
 
-Download the latest release and double-click it.
+Download
+[the latest release](https://github.com/kudrykv/alfred-safari-history/releases/tag/v0.1.0)
+and double-click it.
+Use `amd64` for Intel chips and `arm64` for M1 chips.
 Alfred will proceed with the installation.
 
 # Usage
