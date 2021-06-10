@@ -39,13 +39,21 @@ func wfRunner(wf *aw.Workflow) func() {
 		}
 
 		for _, item := range items {
-			title := ""
+			title := item.URL
+			addSubtitle := false
 
-			if item.Title != nil {
+			if item.Title != nil && len(*item.Title) > 0 {
 				title = *item.Title
+				addSubtitle = true
 			}
 
-			wf.NewItem(title).Arg(item.URL).UID(strconv.FormatInt(item.ID, 16))
+			wfItem := wf.NewItem(title).
+				Arg(item.URL).
+				UID(strconv.FormatInt(item.ID, 16))
+
+			if addSubtitle {
+				wfItem.Subtitle(item.URL)
+			}
 		}
 	}
 }
