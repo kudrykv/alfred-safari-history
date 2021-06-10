@@ -10,7 +10,7 @@ if [ -z "${_version}" ]; then
 fi
 
 _gooses=(darwin)
-_goarches=(amd64 arm64)
+_goarches=(arm64 amd64)
 
 echo "Prep to build for OSes ${_gooses[*]} with arches ${_goarches[*]}"
 
