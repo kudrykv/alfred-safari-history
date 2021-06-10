@@ -49,7 +49,8 @@ func wfRunner(wf *aw.Workflow) func() {
 
 			wfItem := wf.NewItem(title).
 				Arg(item.URL).
-				UID(strconv.FormatInt(item.ID, 16))
+				UID(strconv.FormatInt(item.ID, 16)).
+				Valid(true)
 
 			if addSubtitle {
 				wfItem.Subtitle(item.URL)
