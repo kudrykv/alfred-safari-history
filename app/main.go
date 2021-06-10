@@ -7,26 +7,17 @@ import (
 	"strings"
 
 	aw "github.com/deanishe/awgo"
+	"github.com/mattn/go-sqlite3"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type HistoryItem struct {
-	ID    int64
-	Title *string
-	URL   string
+func init() {
+	sql.Register("sqlite3_custom", &sqlite3.SQLiteDriver{
+		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+			return conn.RegisterFunc("utf8lower", strings.ToLower, true)
+		},
+	})
 }
-
-//goland:noinspection SqlNoDataSourceInspection
-const query = `-- noinspection SqlResolve
-select
-       history_items.id, title, url
-from history_items
-    inner join history_visits on history_visits.history_item = history_items.id
-where title like ? or url like ?
-	group by url
-order by visit_time desc
-limit 40 collate nocase
-`
 
 func main() {
 	var err error
@@ -55,7 +46,7 @@ func main() {
 			return
 		}
 
-		db, err := sql.Open("sqlite3", shf)
+		db, err := sql.Open("sqlite3_custom", shf)
 		if err != nil {
 			wf.NewWarningItem("Could not open the DB", err.Error())
 
@@ -66,7 +57,7 @@ func main() {
 		if len(arg) == 0 {
 			arg = "%"
 		} else {
-			arg = "%" + arg + "%"
+			arg = "%" + strings.ToLower(arg) + "%"
 		}
 
 		cursor, err := db.Query(query, arg, arg)
