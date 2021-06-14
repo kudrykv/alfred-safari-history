@@ -17,7 +17,7 @@ type HistoryItem struct {
 	URL   string
 }
 
-var rmMultSpacesRegexp = regexp.MustCompile(`\s+`)
+var rmMultiSpacesRegexp = regexp.MustCompile(`\s+`)
 
 func wfRunner(wf *aw.Workflow) func() {
 	return func() {
@@ -72,17 +72,9 @@ func flow(terms []string) ([]HistoryItem, error) {
 		return nil, Error{title: "Could not open the DB", message: err}
 	}
 
-	titles := make([]string, 0, len(terms))
-	urls := make([]string, 0, len(terms))
+	q, prepared := prepareQueryAndParams(terms)
 
-	for i := range terms {
-		titles = append(titles, "utf8lower(ifnull(title, '')) like ?"+strconv.Itoa(i+1))
-		urls = append(urls, "utf8lower(ifnull(url, '')) like ?"+strconv.Itoa(i+1))
-	}
-
-	q := qPrefix + " (" + strings.Join(titles, " and ") + ") or (" + strings.Join(urls, " and ") + ") " + qPostfix
-
-	cursor, err := db.Query(q, prepTerms(terms)...)
+	cursor, err := db.Query(q, prepared...)
 	if err != nil {
 		return nil, Error{title: "Could not query Safari History", message: err}
 	}
@@ -108,10 +100,24 @@ func flow(terms []string) ([]HistoryItem, error) {
 	return his, nil
 }
 
+func prepareQueryAndParams(terms []string) (string, []interface{}) {
+	titles := make([]string, 0, len(terms))
+	urls := make([]string, 0, len(terms))
+
+	for i := range terms {
+		titles = append(titles, "utf8lower(ifnull(title, '')) like ?"+strconv.Itoa(i+1))
+		urls = append(urls, "utf8lower(ifnull(url, '')) like ?"+strconv.Itoa(i+1))
+	}
+
+	q := qPrefix + " (" + strings.Join(titles, " and ") + ") or (" + strings.Join(urls, " and ") + ") " + qPostfix
+
+	return q, prepTerms(terms)
+}
+
 func createTerms(slice []string) []string {
 	join := strings.Join(slice, " ")
 	lower := strings.ToLower(join)
-	squashSpaces := rmMultSpacesRegexp.ReplaceAllString(lower, " ")
+	squashSpaces := rmMultiSpacesRegexp.ReplaceAllString(lower, " ")
 
 	return strings.Split(squashSpaces, " ")
 }
