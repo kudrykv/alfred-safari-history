@@ -29,6 +29,7 @@ You then have to run it again, and you will see this security warning again, but
 ## Search
 
 Run `h <query>` to look through the Safari history.
+The workflow allows searching by multiple keywords.
 
 ![](example_2.png)
 
