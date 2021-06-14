@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -16,11 +17,14 @@ type HistoryItem struct {
 	URL   string
 }
 
+var rmMultSpacesRegexp = regexp.MustCompile(`\s+`)
+
 func wfRunner(wf *aw.Workflow) func() {
 	return func() {
 		defer wf.SendFeedback()
 
-		items, err := flow(strings.Join(wf.Args(), " "))
+		allString := rmMultSpacesRegexp.ReplaceAllString(strings.Join(wf.Args(), " "), " ")
+		items, err := flow(strings.Split(strings.TrimSpace(strings.ToLower(allString)), " "))
 		if err != nil {
 			var itemErr *Error
 			if errors.As(err, &itemErr) {
@@ -59,7 +63,7 @@ func wfRunner(wf *aw.Workflow) func() {
 	}
 }
 
-func flow(search string) ([]HistoryItem, error) {
+func flow(terms []string) ([]HistoryItem, error) {
 	if _, err := os.Stat(dbFilePath); os.IsNotExist(err) {
 		return nil, Error{title: "Could not detect Safari history file"}
 	}
@@ -69,9 +73,17 @@ func flow(search string) ([]HistoryItem, error) {
 		return nil, Error{title: "Could not open the DB", message: err}
 	}
 
-	search = prepSearch(search)
+	titles := make([]string, 0, len(terms))
+	urls := make([]string, 0, len(terms))
 
-	cursor, err := db.Query(query, search, search)
+	for i := range terms {
+		titles = append(titles, "utf8lower(ifnull(title, '')) like ?"+strconv.Itoa(i+1))
+		urls = append(urls, "utf8lower(ifnull(url, '')) like ?"+strconv.Itoa(i+1))
+	}
+
+	q := query2prefix + "(" + strings.Join(titles, " and ") + ") or (" + strings.Join(urls, " and ") + ") " + query2postfix
+
+	cursor, err := db.Query(q, prepTerms(terms)...)
 	if err != nil {
 		return nil, Error{title: "Could not query Safari History", message: err}
 	}
@@ -97,12 +109,26 @@ func flow(search string) ([]HistoryItem, error) {
 	return his, nil
 }
 
-func prepSearch(query string) string {
-	if len(query) == 0 {
+func prepTerms(slice []string) []interface{} {
+	if len(slice) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, 0, len(slice))
+
+	for i := range slice {
+		out = append(out, prepTerm(slice[i]))
+	}
+
+	return out
+}
+
+func prepTerm(term string) string {
+	if len(term) == 0 {
 		return "%"
 	}
 
-	return "%" + strings.ToLower(query) + "%"
+	return "%" + term + "%"
 }
 
 type Error struct {
