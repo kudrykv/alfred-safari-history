@@ -23,8 +23,7 @@ func wfRunner(wf *aw.Workflow) func() {
 	return func() {
 		defer wf.SendFeedback()
 
-		allString := rmMultSpacesRegexp.ReplaceAllString(strings.Join(wf.Args(), " "), " ")
-		items, err := flow(strings.Split(strings.TrimSpace(strings.ToLower(allString)), " "))
+		items, err := flow(createTerms(wf.Args()))
 		if err != nil {
 			var itemErr *Error
 			if errors.As(err, &itemErr) {
@@ -81,7 +80,7 @@ func flow(terms []string) ([]HistoryItem, error) {
 		urls = append(urls, "utf8lower(ifnull(url, '')) like ?"+strconv.Itoa(i+1))
 	}
 
-	q := query2prefix + "(" + strings.Join(titles, " and ") + ") or (" + strings.Join(urls, " and ") + ") " + query2postfix
+	q := qPrefix + " (" + strings.Join(titles, " and ") + ") or (" + strings.Join(urls, " and ") + ") " + qPostfix
 
 	cursor, err := db.Query(q, prepTerms(terms)...)
 	if err != nil {
@@ -107,6 +106,14 @@ func flow(terms []string) ([]HistoryItem, error) {
 	}
 
 	return his, nil
+}
+
+func createTerms(slice []string) []string {
+	join := strings.Join(slice, " ")
+	lower := strings.ToLower(join)
+	squashSpaces := rmMultSpacesRegexp.ReplaceAllString(lower, " ")
+
+	return strings.Split(squashSpaces, " ")
 }
 
 func prepTerms(slice []string) []interface{} {

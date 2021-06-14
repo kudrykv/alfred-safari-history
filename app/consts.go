@@ -1,7 +1,7 @@
 package main
 
 const (
-	query2prefix = `
+	qPrefix = `
 select
   history_items.id, title, url
 from history_items
@@ -9,7 +9,7 @@ from history_items
 where
 `
 
-	query2postfix = `
+	qPostfix = `
 	group by url
 order by visit_time desc
 limit 40
